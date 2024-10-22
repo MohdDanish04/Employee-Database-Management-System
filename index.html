@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Database Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h2, h3 {
+            text-align: center;
+        }
+
+        #formContainer, #searchContainer {
+            margin-bottom: 20px;
+        }
+
+        #employeeForm input[type="text"],
+        #employeeForm input[type="number"],
+        #employeeForm input[type="email"] {
+            width: calc(25% - 10px);
+            padding: 10px;
+            margin-right: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        #employeeForm .input-group {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #2b3d68;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1c2850;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        #employeeTableBody td:last-child {
+            white-space: nowrap;
+        }
+
+        #employeeTableBody button {
+            margin-right: 5px;
+        }
+
+        .btn1 {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Employee Database Management System</h2>
+        <div id="formContainer">
+            <h3 id="formTitle">Add Employee</h3>
+            <form id="employeeForm">
+                <div class="input-group">
+                    <input type="text" id="name" placeholder="Name" required>
+                    <input type="number" id="age" placeholder="Age" required>
+                    <input type="email" id="email" placeholder="Email" required>
+                    <input type="text" id="department" placeholder="Department" required>
+                    <button type="submit" class="btn1">Add Employee</button>
+                </div>
+            </form>
+        </div>
+        <div id="searchContainer">
+            <h3>Search Employees</h3>
+            <input type="text" id="searchInput" placeholder="Search by Name or Department">
+        </div>
+        <div id="employeeList">
+            <h3>Employee List</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Age</th>
+                        <th>Email</th>
+                        <th>Department</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="employeeTableBody">
+                    <!-- Employee records will be added dynamically here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<script>
+    const employeeForm = document.getElementById('employeeForm');
+    const employeeTableBody = document.getElementById('employeeTableBody');
+    const searchInput = document.getElementById('searchInput');
+    
+    let employees = [];
+    let editingIndex = -1;
+
+    employeeForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        if (editingIndex > -1) {
+            updateEmployee();
+        } else {
+            addEmployee();
+        }
+    });
+
+    function addEmployee() {
+        const name = document.getElementById('name').value;
+        const age = document.getElementById('age').value;
+        const email = document.getElementById('email').value;
+        const department = document.getElementById('department').value;
+
+        const employee = { name, age, email, department };
+        employees.push(employee);
+        
+        document.getElementById('employeeForm').reset(); // Reset the form
+        renderEmployeeTable();
+    }
+
+    function renderEmployeeTable() {
+        employeeTableBody.innerHTML = '';
+
+        employees.forEach((employee, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${employee.name}</td>
+                <td>${employee.age}</td>
+                <td>${employee.email}</td>
+                <td>${employee.department}</td>
+                <td>
+                    <button onclick="editEmployee(${index})">Edit</button>
+                    <button onclick="deleteEmployee(${index})">Delete</button>
+                </td>
+            `;
+            employeeTableBody.appendChild(row);
+        });
+    }
+
+    function editEmployee(index) {
+        editingIndex = index;
+        const employee = employees[index];
+        document.getElementById('name').value = employee.name;
+        document.getElementById('age').value = employee.age;
+        document.getElementById('email').value = employee.email;
+        document.getElementById('department').value = employee.department;
+        document.getElementById('formTitle').innerText = 'Edit Employee';
+    }
+
+    function updateEmployee() {
+        const name = document.getElementById('name').value;
+        const age = document.getElementById('age').value;
+        const email = document.getElementById('email').value;
+        const department = document.getElementById('department').value;
+
+        employees[editingIndex] = { name, age, email, department };
+        
+        editingIndex = -1; // Reset editing index
+        document.getElementById('employeeForm').reset(); // Reset the form
+        document.getElementById('formTitle').innerText = 'Add Employee'; // Change form title back
+        renderEmployeeTable();
+    }
+
+    function deleteEmployee(index) {
+        employees.splice(index, 1);
+        renderEmployeeTable();
+    }
+
+    searchInput.addEventListener('input', function() {
+        const searchValue = this.value.toLowerCase();
+        const filteredEmployees = employees.filter(employee => 
+            employee.name.toLowerCase().includes(searchValue) || 
+            employee.department.toLowerCase().includes(searchValue)
+        );
+        renderFilteredEmployeeTable(filteredEmployees);
+    });
+
+    function renderFilteredEmployeeTable(filteredEmployees) {
+        employeeTableBody.innerHTML = '';
+
+        filteredEmployees.forEach((employee, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${employee.name}</td>
+                <td>${employee.age}</td>
+                <td>${employee.email}</td>
+                <td>${employee.department}</td>
+                <td>
+                    <button onclick="editEmployee(${index})">Edit</button>
+                    <button onclick="deleteEmployee(${index})">Delete</button>
+                </td>
+            `;
+            employeeTableBody.appendChild(row);
+        });
+    }
+</script>
+
+</body>
+</html>
